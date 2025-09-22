@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { DndContext, closestCenter } from "@dnd-kit/core";
+import { DndContext, closestCenter, useSensor, useSensors, PointerSensor, TouchSensor } from "@dnd-kit/core";
 import {
   SortableContext,
   useSortable,
@@ -10,17 +10,27 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import teams from "../data/teamsData.js";
 
-function SortableTeam({ id, name, color, canDrag = true }) {
+function SortableTeam({ id, name, color }) {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id });
 
-  function getTextColor(hex) { /* ...existing code... */ }
+  function getTextColor(hex) {
+    if (!hex) return "#000";
+    const c = hex.replace("#", "");
+    if (c.length !== 6) return "#000";
+    const r = parseInt(c.substring(0, 2), 16);
+    const g = parseInt(c.substring(2, 4), 16);
+    const b = parseInt(c.substring(4, 6), 16);
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance > 0.6 ? "#000" : "#fff";
+  }
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     background: color || "#f0f0f0",
     color: getTextColor(color),
+    touchAction: "none",
   };
 
   return (
@@ -52,8 +62,23 @@ export default function TeamForm({ onUpdate = () => {} }) {
     });
   }, [eastTeams, westTeams, onUpdate]);
 
+  // sensors: pointer pour desktop, touch avec delay pour mobile (long press)
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } })
+  );
+
+  function handleDragStart() {
+    document.body.style.touchAction = "none";
+  }
+  function handleDragCancel() {
+    document.body.style.touchAction = "";
+  }
+
   function handleDragEnd(setTeams) {
     return (event) => {
+
+      document.body.style.touchAction = "";
       const { active, over } = event;
       if (!over || active.id === over.id) return;
 
@@ -73,8 +98,11 @@ export default function TeamForm({ onUpdate = () => {} }) {
           <div className="flex-1 min-w-0 bg-zinc-800 p-4 rounded-lg">
             <h3 className="text-xl text-white mb-4">Conférence Est</h3>
             <DndContext
+              sensors={sensors}
               collisionDetection={closestCenter}
+              onDragStart={handleDragStart}
               onDragEnd={handleDragEnd(setEastTeams)}
+              onDragCancel={handleDragCancel}
             >
               <SortableContext
                 items={eastTeams.map((t) => t.id)}
@@ -98,8 +126,11 @@ export default function TeamForm({ onUpdate = () => {} }) {
           <div className="flex-1 min-w-0 bg-zinc-800 p-4 rounded-lg">
             <h3 className="text-xl text-white mb-4">Conférence Ouest</h3>
             <DndContext
+              sensors={sensors}
               collisionDetection={closestCenter}
+              onDragStart={handleDragStart}
               onDragEnd={handleDragEnd(setWestTeams)}
+              onDragCancel={handleDragCancel}
             >
               <SortableContext
                 items={westTeams.map((t) => t.id)}
