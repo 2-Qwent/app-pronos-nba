@@ -67,9 +67,9 @@ export default function Home() {
           <a
             target="_blank"
             rel="noopener noreferrer"
-            href="https://github.com/2-Qwent"
+            href="https://github.com/2-Qwent/app-pronos-nba"
           >
-            Code source
+            Code source du projet
           </a>
         </div>
       </footer>
