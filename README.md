@@ -1,1 +1,1 @@
-Petit projet d'entrainement. Ressources / librairies : React / Next.js / dndkit (https://dndkit.com/) / html-to-image (https://github.com/bubkoo/html-to-image)
+Petit projet d'entrainement. Ressources / librairies : React / Next.js / dndkit (https://dndkit.com/) / html-to-image (https://github.com/bubkoo/html-to-image) / react-select (https://react-select.com/home)
